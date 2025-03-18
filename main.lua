@@ -3,6 +3,9 @@ require("components.maze")
 require("components.patterns")
 
 require("patterns.maze")
+local suit = require('libraries.suit')
+
+local Talkies = require('libraries.talkies')
 
 local meshVertices = {} -- for fan mesh
 local meshRadius = 1
@@ -28,18 +31,52 @@ local function updateCurtainCanvas(x, y, radius)
     love.graphics.draw(Mesh, x, y, 0, radius)
     love.graphics.setCanvas()
 end
-function love.load()
 
+local input = {
+    text = ""
+}
+
+function love.load()
+    Talkies.font = love.graphics.newFont("assets/fonts/Pixel UniCode.ttf", 40)
+    Talkies.say("",
+        "'El libre albedrío es el regalo de Dios a nuestro mundo, a nuestra raza, nuestro destino es forjado de nuestras decisiones.\nEs nuestro deber equivocarnos'\nDemian recordaba las palabras de su abuelo en una fría noche de diciembre",
+        {
+            padding = 70,
+            textSpeed = "medium"
+        })
+    Talkies.say("",
+        "Los latidos de su corazón casi parecieron detenerse\nEl esfuerzo por respirar era cada vez más grande\nMientras aún silencioso, e inmovil *ÉL* miraba a Demian",
+        {
+            padding = 60,
+            textSpeed = "medium"
+        })
+    Talkies.say("",
+        "El libre albedrío no es más que un mero cuento de hadas, una ilusión que nos hace creer que nuestras decisiones son nuestras, que nuestras acciones son nuestras, que nuestras vidas son nuestras\nPero no lo son\nNunca lo han sido\nNunca lo serán",
+        {
+            padding = 60,
+            textSpeed = "medium"
+        })
+    Talkies.say("",
+        "La vida humana no es más que un conjunto de variables que pasan por el automata de la vida al que ustedes llaman destino o Dios\nNo importa lo que decidas hoy o mañana, tu destino ya está escrito, tu vida ya está escrita, tu muerte ya está escrita",
+        {
+            padding = 60,
+            textSpeed = "medium"
+        })
+    Talkies.say("", "Pero solo hay una forma de demostartelo, dime Demian ¿Cuál es el sentido de la vida?", {
+        padding = 60,
+        textSpeed = "medium"
+    })
+    scene = 1
     current_cell = 1
     map = Map:new(Maze)
     patterns = Patterns:new(Maze)
     pattern_message = patterns:change("wu")
     patterns:paste(map, 200, 200)
 
-for i = 1, 200 do
-    map:iterate()
-end
-print(pattern_message)
+    for i = 1, 200 do
+        map:iterate()
+    end
+    print(pattern_message)
     neigh = map:count_neighbors()
     map = map:generate_map()
     camera = require 'libraries/camera'
@@ -55,7 +92,7 @@ print(pattern_message)
     CurtainCanvas = love.graphics.newCanvas(2000, 2000)
 
     -- update canvas
-    updateCurtainCanvas(100, 100, 100)
+    -- updateCurtainCanvas(100, 100, 100)
 
     player = {
         grid_x = 1024,
@@ -66,14 +103,33 @@ print(pattern_message)
     }
 end
 
-function love.update(dt)
+function love.textedited(text, start, length)
+    -- for IME input
+    suit.textedited(text, start, length)
+end
 
+function love.textinput(t)
+    -- forward text input to SUIT
+    suit.textinput(t)
+end
+
+function love.keypressed(key)
+    -- forward keypresses to SUIT
+    suit.keypressed(key)
+end
+
+function love.update(dt)
+    Talkies.update(dt)
     player.act_x = player.act_x - ((player.act_x - player.grid_x) * player.speed * dt)
     player.act_y = player.act_y - ((player.act_y - player.grid_y) * player.speed * dt)
 
     if love.keyboard.isDown("escape") then
         love.event.quit()
     end
+
+    -- if love.keyboard.isDown("return") then
+    --     scene = scene+1
+    -- end
 
     cam:lookAt(player.act_x, player.act_y)
     local w = love.graphics.getWidth()
@@ -83,44 +139,72 @@ function love.update(dt)
     if animation.currentTime >= animation.duration then
         animation.currentTime = animation.currentTime - animation.duration
     end
-    updateCurtainCanvas(player.act_x, player.act_y, 100)
+    if (scene == 5) then
+        suit.layout:reset(love.graphics.getWidth() / 2.5, love.graphics.getHeight() / 5)
+        suit.Input(input, suit.layout:row(250, 100))
+    end
+
+    -- updateCurtainCanvas(player.act_x, player.act_y, 100)
 
 end
 
 function love.draw()
-    cam:attach()
+    love.window.setFullscreen(true)
+    love.graphics.setBackgroundColor(0, 0, 0)
+    if (scene == 1) then
+        sceneImg = love.graphics.newImage("art/scene1.jpg")
+        love.graphics.draw(sceneImg, love.graphics.getWidth() / 10, 0, 0, 1.3, 1.3) -- x: 0, y: 0, rot: 0, scale x and scale y
 
-    for y = 1, #map do
-        for x = 1, #map[y] do
-            if map[y][x] == 1 then
+    elseif (scene == 2) then
+        sceneImg = love.graphics.newImage("art/scene2.jpg")
+        love.graphics.draw(sceneImg, love.graphics.getWidth() / 10, 0, 0, 1.3, 1.3) -- x: 0, y: 0, rot: 0, scale x and scale y
 
-                local neighbors = neigh[y][x]
-                if (neighbors ==  4) then
-                    map[y][x] = 0
+    elseif (scene == 3) then
+        sceneImg = love.graphics.newImage("art/scene3.jpg")
+        love.graphics.draw(sceneImg, love.graphics.getWidth() / 10, 0, 0, 1.3, 1.3) -- x: 0, y: 0, rot: 0, scale x and scale y
+    elseif (scene == 4) then
+        sceneImg = love.graphics.newImage("art/scene4.jpg")
+        love.graphics.draw(sceneImg, love.graphics.getWidth() / 10, 0, 0, 1.3, 1.3) -- x: 0, y: 0, rot: 0, scale x and scale y
+    elseif (scene == 5) then
+        sceneImg = love.graphics.newImage("art/scene5.jpg")
+        love.graphics.draw(sceneImg, love.graphics.getWidth() / 10, 0, 0, 1.3, 1.3) -- x: 0, y: 0, rot: 0, scale x and scale y
+    else
+        cam:attach()
+        love.graphics.setBackgroundColor(254, 254, 254)
+
+        for y = 1, #map do
+            for x = 1, #map[y] do
+                if map[y][x] == 1 then
+
+                    local neighbors = neigh[y][x]
+                    if (neighbors == 4) then
+                        map[y][x] = 0
+                    end
+
+                    love.graphics.setColor(0, 0, 0)
+                    love.graphics.rectangle("fill", x * 32, y * 32, 32, 32)
+                    love.graphics.setColor(1, 1, 1)
+                    love.graphics.print(neighbors, x * 32, y * 32, 0, 2, 2)
+
                 end
-
-                love.graphics.setColor(0, 0, 0)
-                love.graphics.rectangle("fill", x * 32, y * 32, 32, 32)
-                love.graphics.setColor(1, 1, 1)
-                love.graphics.print(neighbors, x * 32, y * 32, 0, 2, 2)
-
             end
         end
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.setBlendMode("alpha")
+
+        -- and than drawing curtain
+        love.graphics.draw(CurtainCanvas)
+        love.graphics.setColor(1, 1, 1)
+
+        local spriteNum = math.floor(animation.currentTime / animation.duration * #animation.quads) + 1
+        love.graphics.draw(animation.spriteSheet, animation.quads[spriteNum], player.act_x, player.act_y)
+
+        cam:detach()
+        love.graphics.print("Position: " .. player.grid_x .. ", " .. player.grid_y, 10, 10)
+        love.graphics.print("moouse position: " .. love.mouse.getX() .. ", " .. love.mouse.getY(), 10, 30)
     end
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.setBlendMode("alpha")
-
-    -- and than drawing curtain
-    love.graphics.draw(CurtainCanvas)
-    love.graphics.setColor(1, 1, 1)
-
-    local spriteNum = math.floor(animation.currentTime / animation.duration * #animation.quads) + 1
-    love.graphics.draw(animation.spriteSheet, animation.quads[spriteNum], player.act_x, player.act_y)
-
-    cam:detach()
-    love.window.setFullscreen(true)
-    love.graphics.print("Position: " .. player.grid_x .. ", " .. player.grid_y, 10, 10)
-    love.graphics.print("moouse position: " .. love.mouse.getX() .. ", " .. love.mouse.getY(), 10, 30)
+    Talkies.draw()
+    suit.draw()
 end
 
 function love.keypressed(key, isrepeat)
@@ -140,7 +224,16 @@ function love.keypressed(key, isrepeat)
         if testMap(1, 0) then
             player.grid_x = player.grid_x + 32
         end
+        Talkies.draw()
+    elseif key == "space" and scene < 5 then
+
+        Talkies.onAction()
+    elseif key == "return" then
+        scene = scene + 1
+        Talkies.onAction()
+
     end
+
 end
 
 function testMap(x, y)
