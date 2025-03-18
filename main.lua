@@ -8,12 +8,13 @@ suit = require('libraries.suit')
 Talkies = require('libraries.talkies')
 
 function love.load()
+    love.keyboard.setKeyRepeat(true)
     -- global variables
     created = false
     input = {
         text = ""
     }
-    scene = 5
+    scene = 1
     current_cell = 1
     Talkies.font = love.graphics.newFont("assets/fonts/Pixel UniCode.ttf", 40)
 
@@ -77,9 +78,6 @@ function love.update(dt)
     player.act_x = player.act_x - ((player.act_x - player.grid_x) * player.speed * dt)
     player.act_y = player.act_y - ((player.act_y - player.grid_y) * player.speed * dt)
 
-    -- if love.keyboard.isDown("escape") then
-    --     love.event.quit()
-    -- end
     cam:lookAt(player.act_x, player.act_y)
     local w = love.graphics.getWidth()
     local h = love.graphics.getHeight()
@@ -96,7 +94,6 @@ end
 
 function love.draw()
     love.window.setFullscreen(true)
-    -- love.graphics.setBackgroundColor(0, 0, 0)
     if (scene == 1) then
         sceneImg = love.graphics.newImage("art/scene1.jpg")
         love.graphics.draw(sceneImg, love.graphics.getWidth() / 10, 0, 0, 1.3, 1.3) -- x: 0, y: 0, rot: 0, scale x and scale y
@@ -188,12 +185,9 @@ function love.textinput(t)
     suit.textinput(t)
 end
 
-function love.keypressed(key)
-    suit.keypressed(key)
-end
-
 -- keyboard handler
 function love.keypressed(key, isrepeat)
+    suit.keypressed(key)
     -- player movement
     if key == "up" then
         if testMap(0, -1) then
@@ -219,11 +213,23 @@ function love.keypressed(key, isrepeat)
     elseif key == "return" then
         scene = scene + 1
         Talkies.onAction()
-        -- quit game
-    elseif love.keyboard.isDown("escape") then
+    end
+
+    -- quit game
+    if love.keyboard.isDown("escape") then
         love.event.quit()
     end
 
+end
+
+function love.wheelmoved(x, y)
+    if love.keyboard.isDown("c") then
+        if y > 0 and cam.scale <= 1.5 then
+            cam.scale = cam.scale + 0.1
+        elseif y < 0 and cam.scale >= 0.4 then
+            cam.scale = cam.scale - 0.1
+        end
+    end
 end
 
 -- handle collisions
