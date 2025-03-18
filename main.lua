@@ -1,7 +1,6 @@
 require("components.map")
 require("components.maze")
 require("components.patterns")
-require("patterns.maze")
 require("components.curtain")
 
 camera = require 'libraries/camera'
@@ -14,7 +13,7 @@ function love.load()
     input = {
         text = ""
     }
-    scene = 1
+    scene = 5
     current_cell = 1
     Talkies.font = love.graphics.newFont("assets/fonts/Pixel UniCode.ttf", 40)
 

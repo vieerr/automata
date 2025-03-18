@@ -45,16 +45,16 @@ function Map:draw()
     for x = 1, Map.xsize do
         for y = 1, Map.ysize do
             if Map.present[x][y].state then
-
                 local the_cell = Map.present[x][y]
                 local color = the_cell.colors[the_cell.state + 1]
-                love.graphics.setColor(color[1], color[2], color[3])
-                love.graphics.rectangle("fill", (x * 5) - 5, (y * 5) - 5, 4, 4)
+                love.graphics.setColor(255, 255, 255)
+                love.graphics.rectangle("fill", x,y, 4,4)
             end
         end
     end
 end
 
+-- generate a table of the current state of the map
 function Map:generate_map()
     local map = {}
 
@@ -68,10 +68,12 @@ function Map:generate_map()
     return map
 end
 
+-- add a cell to the map
 function Map:add_cell(x, y, state)
     Map.present[x][y] = Map.cell_class:new(state, x, y, self)
 end
 
+-- how many cells are alive around this cell
 function Map:count_neighbors()
     local neighbor_map = {}
 

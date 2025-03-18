@@ -2,6 +2,7 @@ local class = require 'libraries.middleclass'
 
 Patterns = class('Patterns')
 
+-- string to bit pattern to create noise
 local function stringToBitPatterns(str)
     local bitPatterns = {}
     for i = 1, #str do
@@ -17,7 +18,7 @@ local function stringToBitPatterns(str)
     return bitPatterns
 
 end
-
+-- paste the noise in the map
 function Patterns:paste(map, x, y)
     for px = 1, #Maze.static.pattern do
         for py = 1, #Maze.static.pattern[px] do
@@ -25,7 +26,7 @@ function Patterns:paste(map, x, y)
         end
     end
 end
-
+-- change the string to create a new noise
 function Patterns:change(str)
     Maze.static.pattern = stringToBitPatterns(str)
 
