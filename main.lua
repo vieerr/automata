@@ -1,3 +1,9 @@
+require("components.map")
+require("components.maze")
+require("components.patterns")
+
+require("patterns.maze")
+
 local meshVertices = {} -- for fan mesh
 local meshRadius = 1
 table.insert(meshVertices, {0, 0, 0, 0, 1, 1, 1, 0}) -- white dot int the middle
@@ -9,6 +15,7 @@ end
 Mesh = love.graphics.newMesh(meshVertices, "fan")
 
 local function updateCurtainCanvas(x, y, radius)
+    print(CurtainCanvas:getWidth())
     love.graphics.setCanvas(CurtainCanvas)
     -- black curtain
     love.graphics.setBlendMode("alpha")
@@ -21,59 +28,49 @@ local function updateCurtainCanvas(x, y, radius)
     love.graphics.draw(Mesh, x, y, 0, radius)
     love.graphics.setCanvas()
 end
-
 function love.load()
+
+    current_cell = 1
+    map = Map:new(Maze)
+    patterns = Patterns:new(Maze)
+    pattern_message = patterns:change("wu")
+    patterns:paste(map, 200, 200)
+
+for i = 1, 200 do
+    map:iterate()
+end
+print(pattern_message)
+    neigh = map:count_neighbors()
+    map = map:generate_map()
     camera = require 'libraries/camera'
     print(automata("vier"))
     cam = camera()
-    cam.scale = 2
+    cam.scale = 1.1
     animation = newAnimation(love.graphics.newImage("ghost-Sheet.png"), 32, 32, 1)
 
     -- set background
     love.graphics.setBackgroundColor(255, 255, 255)
 
     -- create canvas
-    CurtainCanvas = love.graphics.newCanvas()
+    CurtainCanvas = love.graphics.newCanvas(2000, 2000)
 
     -- update canvas
     updateCurtainCanvas(100, 100, 100)
 
     player = {
-        grid_x = 256,
-        grid_y = 256,
+        grid_x = 1024,
+        grid_y = 1024,
         act_x = 200,
         act_y = 200,
-        speed = 10
+        speed = 15
     }
-
-     map = {
-        {0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
-        {0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0},
-        {1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0},
-        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0},
-        {1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0},
-        {1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0},
-        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1},
-        {1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1},
-        {1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1},
-        {0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1},
-        {1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1},
-        {1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0},
-        {1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1},
-        {1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0},
-        {1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-    }
-    
-    print(#map);
-    print(#map[1]);
 end
 
 function love.update(dt)
 
     player.act_x = player.act_x - ((player.act_x - player.grid_x) * player.speed * dt)
     player.act_y = player.act_y - ((player.act_y - player.grid_y) * player.speed * dt)
+
     if love.keyboard.isDown("escape") then
         love.event.quit()
     end
@@ -92,30 +89,36 @@ end
 
 function love.draw()
     cam:attach()
-    -- restoring color settings
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.setBlendMode("alpha")
 
     for y = 1, #map do
         for x = 1, #map[y] do
             if map[y][x] == 1 then
+
+                local neighbors = neigh[y][x]
+                if (neighbors ==  4) then
+                    map[y][x] = 0
+                end
+
                 love.graphics.setColor(0, 0, 0)
                 love.graphics.rectangle("fill", x * 32, y * 32, 32, 32)
+                love.graphics.setColor(1, 1, 1)
+                love.graphics.print(neighbors, x * 32, y * 32, 0, 2, 2)
+
             end
         end
     end
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.setBlendMode("alpha")
 
     -- and than drawing curtain
     love.graphics.draw(CurtainCanvas)
     love.graphics.setColor(1, 1, 1)
-    -- love.graphics.rectangle("fill", player.act_x, player.act_y, 32, 32)
 
     local spriteNum = math.floor(animation.currentTime / animation.duration * #animation.quads) + 1
     love.graphics.draw(animation.spriteSheet, animation.quads[spriteNum], player.act_x, player.act_y)
 
     cam:detach()
-    -- love.window.setFullscreen(true)
-
+    love.window.setFullscreen(true)
     love.graphics.print("Position: " .. player.grid_x .. ", " .. player.grid_y, 10, 10)
     love.graphics.print("moouse position: " .. love.mouse.getX() .. ", " .. love.mouse.getY(), 10, 30)
 end
