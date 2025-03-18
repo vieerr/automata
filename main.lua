@@ -1,11 +1,12 @@
 require("components.map")
 require("components.maze")
 require("components.patterns")
-
 require("patterns.maze")
-local suit = require('libraries.suit')
 
+local suit = require('libraries.suit')
 local Talkies = require('libraries.talkies')
+
+created = false
 
 local meshVertices = {} -- for fan mesh
 local meshRadius = 1
@@ -68,19 +69,16 @@ function love.load()
     })
     scene = 1
     current_cell = 1
-    map = Map:new(Maze)
-    patterns = Patterns:new(Maze)
-    pattern_message = patterns:change("wu")
-    patterns:paste(map, 200, 200)
-
-    for i = 1, 200 do
-        map:iterate()
-    end
-    print(pattern_message)
-    neigh = map:count_neighbors()
-    map = map:generate_map()
     camera = require 'libraries/camera'
-    print(automata("vier"))
+
+    player = {
+        grid_x = 1024,
+        grid_y = 1024,
+        act_x = 200,
+        act_y = 200,
+        speed = 15
+    }
+
     cam = camera()
     cam.scale = 1.1
     animation = newAnimation(love.graphics.newImage("ghost-Sheet.png"), 32, 32, 1)
@@ -91,16 +89,9 @@ function love.load()
     -- create canvas
     CurtainCanvas = love.graphics.newCanvas(2000, 2000)
 
-    -- update canvas
-    -- updateCurtainCanvas(100, 100, 100)
-
-    player = {
-        grid_x = 1024,
-        grid_y = 1024,
-        act_x = 200,
-        act_y = 200,
-        speed = 15
-    }
+    worldMap = {}
+    map = Map:new(Maze)
+    patterns = Patterns:new(Maze)
 end
 
 function love.textedited(text, start, length)
@@ -172,13 +163,30 @@ function love.draw()
         cam:attach()
         love.graphics.setBackgroundColor(254, 254, 254)
 
-        for y = 1, #map do
-            for x = 1, #map[y] do
-                if map[y][x] == 1 then
+        if (created == false) then
+            print(input.text)
+            pattern_message = patterns:change(input.text)
+
+            patterns:paste(map, 200, 200)
+
+            for i = 1, 200 do
+                map:iterate()
+            end
+            neigh = map:count_neighbors()
+            worldMap = map:generate_map()
+            created = true
+        end
+
+        -- update canvas
+        -- updateCurtainCanvas(100, 100, 100)
+
+        for y = 1, #worldMap do
+            for x = 1, #worldMap[y] do
+                if worldMap[y][x] == 1 then
 
                     local neighbors = neigh[y][x]
                     if (neighbors == 4) then
-                        map[y][x] = 0
+                        worldMap[y][x] = 0
                     end
 
                     love.graphics.setColor(0, 0, 0)
@@ -189,6 +197,17 @@ function love.draw()
                 end
             end
         end
+        -- populate borders with 1's
+        for y = 1, #worldMap do
+            worldMap[y][1] = 1
+            worldMap[y][#worldMap[y]] = 1
+        end
+
+        for x = 1, #worldMap[1] do
+            worldMap[1][x] = 1
+            worldMap[#worldMap][x] = 1
+        end
+
         love.graphics.setColor(1, 1, 1)
         love.graphics.setBlendMode("alpha")
 
@@ -237,7 +256,7 @@ function love.keypressed(key, isrepeat)
 end
 
 function testMap(x, y)
-    if map[(player.grid_y / 32) + y][(player.grid_x / 32) + x] == 1 then
+    if worldMap[(player.grid_y / 32) + y][(player.grid_x / 32) + x] == 1 then
         return false
     end
     return true
