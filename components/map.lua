@@ -3,6 +3,7 @@ local class = require("libraries.middleclass")
 Map = class("Map")
 
 function Map:initialize()
+    -- dimensiones del mapa
     Map.xsize = 60
     Map.ysize = 60
     Map.cell_class = Maze
