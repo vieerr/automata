@@ -11,9 +11,15 @@ function updateCurtainCanvas(x, y, radius)
     love.graphics.setColor(0, 0, 0, 0.97)
     love.graphics.draw(Mesh, x, y, 0, radius)
     love.graphics.setCanvas()
-
-
 end
+
+function removeCurtain()
+    love.graphics.setCanvas(CurtainCanvas)
+    -- Clear the canvas by setting it to transparent
+    love.graphics.clear(0, 0, 0, 0)
+    love.graphics.setCanvas()
+end
+
 
 function createMesh(radius)
     love.graphics.setBackgroundColor(1, 1, 1)

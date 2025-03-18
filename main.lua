@@ -11,10 +11,11 @@ function love.load()
     love.keyboard.setKeyRepeat(true)
     -- global variables
     created = false
+    darkness = true
     input = {
         text = ""
     }
-    scene = 1
+    scene = 5
     current_cell = 1
     Talkies.font = love.graphics.newFont("assets/fonts/Pixel UniCode.ttf", 40)
 
@@ -37,7 +38,7 @@ function love.load()
         act_y = 200,
         speed = 15
     }
-    animation = newAnimation(love.graphics.newImage("ghost-Sheet.png"), 32, 32, 1)
+    animation = newAnimation(love.graphics.newImage("ghost.png"), 32, 32, 1.5)
 
     -- dialogs
     Talkies.say("",
@@ -93,7 +94,7 @@ function love.update(dt)
 end
 
 function love.draw()
-    love.window.setFullscreen(true)
+    -- love.window.setFullscreen(true)
     if (scene == 1) then
         sceneImg = love.graphics.newImage("art/scene1.jpg")
         love.graphics.draw(sceneImg, love.graphics.getWidth() / 10, 0, 0, 1.3, 1.3) -- x: 0, y: 0, rot: 0, scale x and scale y
@@ -169,7 +170,12 @@ function love.draw()
         love.graphics.print("Position: " .. player.grid_x .. ", " .. player.grid_y, 10, 10)
         love.graphics.print("moouse position: " .. love.mouse.getX() .. ", " .. love.mouse.getY(), 10, 30)
         if (created == true) then
-            updateCurtainCanvas(player.act_x, player.act_y, 100)
+            if (darkness == true) then
+                updateCurtainCanvas(player.act_x, player.act_y, 100)
+            else
+                print("removing curtain")
+                removeCurtain(player.act_x, player.act_y, 100)
+            end
         end
     end
     Talkies.draw()
@@ -213,6 +219,8 @@ function love.keypressed(key, isrepeat)
     elseif key == "return" then
         scene = scene + 1
         Talkies.onAction()
+    elseif key == "n" then
+        darkness = not darkness
     end
 
     -- quit game
