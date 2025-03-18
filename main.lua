@@ -2,37 +2,13 @@ require("components.map")
 require("components.maze")
 require("components.patterns")
 require("patterns.maze")
+require("components.curtain")
 
+camera = require 'libraries/camera'
 local suit = require('libraries.suit')
 local Talkies = require('libraries.talkies')
 
 created = false
-
-local meshVertices = {} -- for fan mesh
-local meshRadius = 1
-table.insert(meshVertices, {0, 0, 0, 0, 1, 1, 1, 0}) -- white dot int the middle
-for angle = 0, 360, 10 do
-    local x = 0 + meshRadius * math.cos(math.rad(angle))
-    local y = 0 + meshRadius * math.sin(math.rad(angle))
-    table.insert(meshVertices, {x, y, 0, 0, 0, 0, 0, 1}) -- black dots on perimeter
-end
-Mesh = love.graphics.newMesh(meshVertices, "fan")
-
-local function updateCurtainCanvas(x, y, radius)
-    print(CurtainCanvas:getWidth())
-    love.graphics.setCanvas(CurtainCanvas)
-    -- black curtain
-    love.graphics.setBlendMode("alpha")
-    love.graphics.setColor(0, 0, 0, 1) -- black
-    love.graphics.rectangle('fill', 0, 0, CurtainCanvas:getWidth(), CurtainCanvas:getHeight())
-
-    -- circle hole
-    love.graphics.setBlendMode("replace")
-    love.graphics.setColor(0, 0, 0, 0.97)
-    love.graphics.draw(Mesh, x, y, 0, radius)
-    love.graphics.setCanvas()
-end
-
 local input = {
     text = ""
 }
@@ -67,9 +43,9 @@ function love.load()
         padding = 60,
         textSpeed = "medium"
     })
+
     scene = 1
     current_cell = 1
-    camera = require 'libraries/camera'
 
     player = {
         grid_x = 1024,
@@ -80,13 +56,14 @@ function love.load()
     }
 
     cam = camera()
-    cam.scale = 1.1
+    cam.scale = 1.5
     animation = newAnimation(love.graphics.newImage("ghost-Sheet.png"), 32, 32, 1)
 
     -- set background
-    love.graphics.setBackgroundColor(255, 255, 255)
+    love.graphics.setBackgroundColor(0, 0, 0)
 
     -- create canvas
+
     CurtainCanvas = love.graphics.newCanvas(2000, 2000)
 
     worldMap = {}
@@ -117,11 +94,6 @@ function love.update(dt)
     if love.keyboard.isDown("escape") then
         love.event.quit()
     end
-
-    -- if love.keyboard.isDown("return") then
-    --     scene = scene+1
-    -- end
-
     cam:lookAt(player.act_x, player.act_y)
     local w = love.graphics.getWidth()
     local h = love.graphics.getHeight()
@@ -134,14 +106,11 @@ function love.update(dt)
         suit.layout:reset(love.graphics.getWidth() / 2.5, love.graphics.getHeight() / 5)
         suit.Input(input, suit.layout:row(250, 100))
     end
-
-    -- updateCurtainCanvas(player.act_x, player.act_y, 100)
-
 end
 
 function love.draw()
     love.window.setFullscreen(true)
-    love.graphics.setBackgroundColor(0, 0, 0)
+    -- love.graphics.setBackgroundColor(0, 0, 0)
     if (scene == 1) then
         sceneImg = love.graphics.newImage("art/scene1.jpg")
         love.graphics.draw(sceneImg, love.graphics.getWidth() / 10, 0, 0, 1.3, 1.3) -- x: 0, y: 0, rot: 0, scale x and scale y
@@ -164,21 +133,20 @@ function love.draw()
         love.graphics.setBackgroundColor(254, 254, 254)
 
         if (created == false) then
-            print(input.text)
-            pattern_message = patterns:change(input.text)
 
+            pattern_message = patterns:change(input.text)
             patterns:paste(map, 200, 200)
 
             for i = 1, 200 do
                 map:iterate()
             end
+
             neigh = map:count_neighbors()
             worldMap = map:generate_map()
+            Mesh = createMesh(1)
+
             created = true
         end
-
-        -- update canvas
-        -- updateCurtainCanvas(100, 100, 100)
 
         for y = 1, #worldMap do
             for x = 1, #worldMap[y] do
@@ -188,12 +156,8 @@ function love.draw()
                     if (neighbors == 4) then
                         worldMap[y][x] = 0
                     end
-
                     love.graphics.setColor(0, 0, 0)
                     love.graphics.rectangle("fill", x * 32, y * 32, 32, 32)
-                    love.graphics.setColor(1, 1, 1)
-                    love.graphics.print(neighbors, x * 32, y * 32, 0, 2, 2)
-
                 end
             end
         end
@@ -221,6 +185,9 @@ function love.draw()
         cam:detach()
         love.graphics.print("Position: " .. player.grid_x .. ", " .. player.grid_y, 10, 10)
         love.graphics.print("moouse position: " .. love.mouse.getX() .. ", " .. love.mouse.getY(), 10, 30)
+        if (created == true) then
+            updateCurtainCanvas(player.act_x, player.act_y, 100)
+        end
     end
     Talkies.draw()
     suit.draw()
