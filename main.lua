@@ -5,16 +5,41 @@ require("patterns.maze")
 require("components.curtain")
 
 camera = require 'libraries/camera'
-local suit = require('libraries.suit')
-local Talkies = require('libraries.talkies')
-
-created = false
-local input = {
-    text = ""
-}
+suit = require('libraries.suit')
+Talkies = require('libraries.talkies')
 
 function love.load()
+    -- global variables
+    created = false
+    input = {
+        text = ""
+    }
+    scene = 1
+    current_cell = 1
     Talkies.font = love.graphics.newFont("assets/fonts/Pixel UniCode.ttf", 40)
+
+    -- map
+    love.graphics.setBackgroundColor(0, 0, 0)
+    CurtainCanvas = love.graphics.newCanvas(2000, 2000)
+    worldMap = {}
+    map = Map:new(Maze)
+    patterns = Patterns:new(Maze)
+
+    -- camera
+    cam = camera()
+    cam.scale = 1.5
+
+    -- player
+    player = {
+        grid_x = 1024,
+        grid_y = 1024,
+        act_x = 200,
+        act_y = 200,
+        speed = 15
+    }
+    animation = newAnimation(love.graphics.newImage("ghost-Sheet.png"), 32, 32, 1)
+
+    -- dialogs
     Talkies.say("",
         "'El libre albedrío es el regalo de Dios a nuestro mundo, a nuestra raza, nuestro destino es forjado de nuestras decisiones.\nEs nuestro deber equivocarnos'\nDemian recordaba las palabras de su abuelo en una fría noche de diciembre",
         {
@@ -43,57 +68,19 @@ function love.load()
         padding = 60,
         textSpeed = "medium"
     })
-
-    scene = 1
-    current_cell = 1
-
-    player = {
-        grid_x = 1024,
-        grid_y = 1024,
-        act_x = 200,
-        act_y = 200,
-        speed = 15
-    }
-
-    cam = camera()
-    cam.scale = 1.5
-    animation = newAnimation(love.graphics.newImage("ghost-Sheet.png"), 32, 32, 1)
-
-    -- set background
-    love.graphics.setBackgroundColor(0, 0, 0)
-
-    -- create canvas
-
-    CurtainCanvas = love.graphics.newCanvas(2000, 2000)
-
-    worldMap = {}
-    map = Map:new(Maze)
-    patterns = Patterns:new(Maze)
-end
-
-function love.textedited(text, start, length)
-    -- for IME input
-    suit.textedited(text, start, length)
-end
-
-function love.textinput(t)
-    -- forward text input to SUIT
-    suit.textinput(t)
-end
-
-function love.keypressed(key)
-    -- forward keypresses to SUIT
-    suit.keypressed(key)
 end
 
 function love.update(dt)
+    -- talkies required handler
     Talkies.update(dt)
+
+    -- player movement
     player.act_x = player.act_x - ((player.act_x - player.grid_x) * player.speed * dt)
     player.act_y = player.act_y - ((player.act_y - player.grid_y) * player.speed * dt)
 
-    if love.keyboard.isDown("escape") then
-        love.event.quit()
-    end
+    -- if love.keyboard.isDown("escape") then
+    --     love.event.quit()
+    -- end
     cam:lookAt(player.act_x, player.act_y)
     local w = love.graphics.getWidth()
     local h = love.graphics.getHeight()
@@ -193,7 +180,22 @@ function love.draw()
     suit.draw()
 end
 
+-- suit required handlers
+function love.textedited(text, start, length)
+    suit.textedited(text, start, length)
+end
+
+function love.textinput(t)
+    suit.textinput(t)
+end
+
+function love.keypressed(key)
+    suit.keypressed(key)
+end
+
+-- keyboard handler
 function love.keypressed(key, isrepeat)
+    -- player movement
     if key == "up" then
         if testMap(0, -1) then
             player.grid_y = player.grid_y - 32
@@ -211,17 +213,21 @@ function love.keypressed(key, isrepeat)
             player.grid_x = player.grid_x + 32
         end
         Talkies.draw()
+        -- cinematic scenes
     elseif key == "space" and scene < 5 then
 
         Talkies.onAction()
     elseif key == "return" then
         scene = scene + 1
         Talkies.onAction()
-
+        -- quit game
+    elseif love.keyboard.isDown("escape") then
+        love.event.quit()
     end
 
 end
 
+-- handle collisions
 function testMap(x, y)
     if worldMap[(player.grid_y / 32) + y][(player.grid_x / 32) + x] == 1 then
         return false
@@ -229,6 +235,7 @@ function testMap(x, y)
     return true
 end
 
+-- handle character animation
 function newAnimation(image, width, height, duration)
     local animation = {}
     animation.spriteSheet = image;
@@ -246,15 +253,3 @@ function newAnimation(image, width, height, duration)
     return animation
 end
 
-function automata(str)
-    local newstr = ""
-    for i = 1, #str do
-        local c = str:sub(i, i)
-        if c == "1" then
-            newstr = newstr .. "11"
-        else
-            newstr = newstr .. "00"
-        end
-    end
-    return newstr
-end
